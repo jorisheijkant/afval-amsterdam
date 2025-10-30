@@ -1,12 +1,9 @@
 import pandas as pd 
 import numpy as np
-from shapely.wkt import loads
 
 from functions.convert_point import convert_point_28992_to_4326
 from functions.create_folium_map import create_folium_map
 from functions.utils.print_dataframe_info import print_dataframe_info
-
-create_map = False
 
 trash_dataframe = pd.read_csv("data/bijplaatsingen_2.csv", low_memory=False)
 trash_dataframe['geometrie_str'] = trash_dataframe['geometrie'].astype(str)
@@ -42,7 +39,4 @@ grouped_by_bin = grouped_by_bin.sort_values(
 print_dataframe_info(grouped_by_bin)
 
 grouped_by_bin.to_csv("all_bins.csv")
-
-if create_map:
-    create_folium_map(grouped_by_bin)
 

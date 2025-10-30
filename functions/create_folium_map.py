@@ -1,10 +1,13 @@
 import folium
+from folium.plugins import MarkerCluster
 
 def create_folium_map(dataframe):
     center_lat = dataframe['lat'].mean()
     center_lon = dataframe['lon'].mean()
     
     folium_map = folium.Map(location=[center_lat, center_lon], zoom_start=12, tiles="cartodbpositron")
+
+    marker_cluster = MarkerCluster().add_to(folium_map)
 
     for index, row in dataframe.iterrows():
         popup_text = f"""
@@ -25,7 +28,7 @@ def create_folium_map(dataframe):
             location=[row['lat'], row['lon']],
             popup=folium.Popup(popup_text, max_width=300),
             icon=folium.Icon(color=marker_color, icon='trash', prefix='fa')
-        ).add_to(folium_map)
+        ).add_to(marker_cluster)
 
         map_filename = "map/containers.html"
         folium_map.save(map_filename)
