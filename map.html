@@ -11,31 +11,55 @@
 </head>
 <body>
   <div id="map"></div>
-  <script>
-    const map = L.map('map').setView([0, 0], 2);
+<script>
+  const map = L.map('map').setView([52.37, 4.89], 12);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-    fetch('all_bins.geojson')
-      .then(res => res.json())
-      .then(data => {
-        const layer = L.geoJSON(data, {
-          onEachFeature: (feature, layer) => {
-            if (feature.properties) {
-              const props = Object.entries(feature.properties)
-                .map(([k, v]) => `<b>${k}</b>: ${v}`)
-                .join('<br>');
-              layer.bindPopup(props);
-            }
-          }
-        }).addTo(map);
+  fetch('all_bins.geojson')
+    .then(res => res.json())
+    .then(data => {
+      // Extract all total values
+      const totals = data.features
+        .map(f => f.properties.totaal_bijplaatsingen)
+        .filter(v => typeof v === 'number' && !isNaN(v));
 
-        map.fitBounds(layer.getBounds());
-      });
-  </script>
+      // Compute 90th percentile (top 10%)
+      totals.sort((a, b) => a - b);
+      const p90 = totals[Math.floor(totals.length * 0.9)];
+
+      console.log(`90th percentile (top 10% threshold): ${p90}`);
+
+      // Define marker style based on total
+      const geojsonLayer = L.geoJSON(data, {
+        pointToLayer: (feature, latlng) => {
+          const total = feature.properties.totaal_bijplaatsingen;
+          const color = (total >= p90) ? 'red' : 'blue';
+          const radius = (total >= p90) ? 8 : 5;
+
+          return L.circleMarker(latlng, {
+            radius: radius,
+            fillColor: color,
+            color: '#333',
+            weight: 1,
+            fillOpacity: 0.8
+          });
+        },
+        onEachFeature: (feature, layer) => {
+          const props = feature.properties;
+          const html = Object.entries(props)
+            .map(([k, v]) => `<b>${k}</b>: ${v}`)
+            .join('<br>');
+          layer.bindPopup(html);
+        }
+      }).addTo(map);
+
+      map.fitBounds(geojsonLayer.getBounds());
+    });
+</script>
 </body>
 </html>
 

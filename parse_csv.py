@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 
 from functions.convert_point import convert_point_28992_to_4326
-from functions.create_folium_map import create_folium_map
 from functions.utils.print_dataframe_info import print_dataframe_info
 
 trash_dataframe = pd.read_csv("data/bijplaatsingen_2.csv", low_memory=False)

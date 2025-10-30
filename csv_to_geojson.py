@@ -5,26 +5,38 @@ df = pd.read_csv("all_bins.csv")
 
 df.rename(columns={'lat': 'latitude', 'lon': 'longitude'}, inplace=True)
 
-geojson = {
-    "type": "FeatureCollection",
-    "features": [
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [float(row.longitude), float(row.latitude)]
-            },
-            "properties": {
-                "id": row.get("id", i),
-                **{col: row[col] for col in df.columns if col not in ["latitude", "longitude"]}
-            },
-        }
-        for i, row in df.iterrows()
-    ],
-}
+df = df.dropna(subset=['latitude', 'longitude'])
+
+df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
+df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
+
+df = df.where(pd.notnull(df), None)
+
+keep_properties = [
+    "totaal_bijplaatsingen",
+    "aantal_handhavingen",
+    "adres",
+    "aantal_grofvuil"
+]
+
+features = []
+for _, row in df.iterrows():
+    feature = {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [float(row.longitude), float(row.latitude)],
+        },
+        "properties": {
+            key: row.get(key) for key in keep_properties if key in df.columns
+        },
+    }
+    features.append(feature)
+
+geojson = {"type": "FeatureCollection", "features": features}
 
 with open("all_bins.geojson", "w") as f:
-    json.dump(geojson, f)
+    json.dump(geojson, f, allow_nan=False)
 
-print("✅ Created all_bins.geojson with", len(df), "points")
+print(f"✅ Saved 'trash_bins.geojson' with {len(features)} valid features and only selected properties")
 
