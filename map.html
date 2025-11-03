@@ -24,21 +24,20 @@
     .then(data => {
       // Extract all total values
       const totals = data.features
-        .map(f => f.properties.totaal_bijplaatsingen)
+        .map(f => f.properties.aantal_niet_aplus)
         .filter(v => typeof v === 'number' && !isNaN(v));
 
       // Compute 90th percentile (top 10%)
       totals.sort((a, b) => a - b);
       const p90 = totals[Math.floor(totals.length * 0.9)];
 
-      console.log(`90th percentile (top 10% threshold): ${p90}`);
-
       // Define marker style based on total
       const geojsonLayer = L.geoJSON(data, {
         pointToLayer: (feature, latlng) => {
           const total = feature.properties.totaal_bijplaatsingen;
-          const color = (total >= p90) ? 'red' : 'blue';
-          const radius = (total >= p90) ? 8 : 5;
+          const totalNotAPlus = feature.properties.aantal_niet_aplus;
+          const color = (totalNotAPlus >= p90) ? 'red' : 'blue';
+          const radius = (totalNotAPlus >= p90) ? 8 : 5;
 
           return L.circleMarker(latlng, {
             radius: radius,

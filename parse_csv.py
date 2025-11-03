@@ -8,12 +8,9 @@ trash_dataframe = pd.read_csv("data/bijplaatsingen_2.csv", low_memory=False)
 trash_dataframe['geometrie_str'] = trash_dataframe['geometrie'].astype(str)
 print_dataframe_info(trash_dataframe)
 
-dumpings_only = trash_dataframe[trash_dataframe["crow_score"] != "A+"]
-
-print_dataframe_info(dumpings_only)
-
-grouped_by_bin = dumpings_only.groupby(["bag_openbareruimte_id"]).agg(
+grouped_by_bin = trash_dataframe.groupby(["bag_openbareruimte_id"]).agg(
         totaal_bijplaatsingen=("bag_openbareruimte_id", "size"),
+        aantal_niet_aplus=("crow_score", lambda x: (x != "A+").sum()),
         aantal_grofvuil=("grof", np.sum),
         stadsdeel=("gbd_stadsdeel_naam", "first"),
         postcode=("postcode", "first"),
