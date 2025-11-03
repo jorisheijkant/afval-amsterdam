@@ -4,12 +4,12 @@ import numpy as np
 from functions.convert_point import convert_point_28992_to_4326
 from functions.utils.print_dataframe_info import print_dataframe_info
 
-trash_dataframe = pd.read_csv("data/bijplaatsingen_2.csv", low_memory=False)
+trash_dataframe = pd.read_csv("data/bijplaatsingen.csv", low_memory=False)
 trash_dataframe['geometrie_str'] = trash_dataframe['geometrie'].astype(str)
 print_dataframe_info(trash_dataframe)
 
-grouped_by_bin = trash_dataframe.groupby(["bag_openbareruimte_id"]).agg(
-        totaal_bijplaatsingen=("bag_openbareruimte_id", "size"),
+grouped_by_bin = trash_dataframe.groupby(["bag_verblijfsobject_id"]).agg(
+        totaal_bijplaatsingen=("bag_verblijfsobject_id", "size"),
         aantal_niet_aplus=("crow_score", lambda x: (x != "A+").sum()),
         aantal_grofvuil=("grof", np.sum),
         stadsdeel=("gbd_stadsdeel_naam", "first"),
