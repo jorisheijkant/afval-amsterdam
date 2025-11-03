@@ -14,6 +14,7 @@ df = df.where(pd.notnull(df), None)
 
 keep_properties = [
     "totaal_bijplaatsingen",
+    "aantal_niet_aplus",
     "aantal_handhavingen",
     "adres",
     "aantal_grofvuil"
