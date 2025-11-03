@@ -7,9 +7,24 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <style>
     html, body, #map { height: 100%; margin: 0; }
+    .toggle-control {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
+  <div class="toggle-control">
+    <label>
+      <input type="checkbox" id="showTop5Only" checked> Alleen top 5%
+    </label>
+  </div>
   <div id="map"></div>
 <script>
   const map = L.map('map').setView([52.37, 4.89], 12);
@@ -19,44 +34,98 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
+  let allData;
+  let geojsonLayer;
+  
   fetch('all_bins.geojson')
     .then(res => res.json())
     .then(data => {
+      allData = data;
+      
       // Extract all total values
       const totals = data.features
         .map(f => f.properties.aantal_niet_aplus)
         .filter(v => typeof v === 'number' && !isNaN(v));
 
-      // Compute 90th percentile (top 10%)
+      // Compute 95th percentile (top 5%)
       totals.sort((a, b) => a - b);
-      const p90 = totals[Math.floor(totals.length * 0.9)];
-
-      // Define marker style based on total
-      const geojsonLayer = L.geoJSON(data, {
-        pointToLayer: (feature, latlng) => {
-          const total = feature.properties.totaal_bijplaatsingen;
-          const totalNotAPlus = feature.properties.aantal_niet_aplus;
-          const color = (totalNotAPlus >= p90) ? 'red' : 'blue';
-          const radius = (totalNotAPlus >= p90) ? 8 : 5;
-
-          return L.circleMarker(latlng, {
-            radius: radius,
-            fillColor: color,
-            color: '#333',
-            weight: 1,
-            fillOpacity: 0.8
-          });
-        },
-        onEachFeature: (feature, layer) => {
-          const props = feature.properties;
-          const html = Object.entries(props)
-            .map(([k, v]) => `<b>${k}</b>: ${v}`)
-            .join('<br>');
-          layer.bindPopup(html);
+      const p95 = totals[Math.floor(totals.length * 0.95)];
+      
+      // Get top 10 values for special markers
+      const sortedFeatures = [...allData.features].sort((a, b) => 
+        b.properties.aantal_niet_aplus - a.properties.aantal_niet_aplus
+      );
+      const top10Values = sortedFeatures.slice(0, 10).map(f => f.properties.aantal_niet_aplus);
+      
+      function updateMap() {
+        if (geojsonLayer) {
+          map.removeLayer(geojsonLayer);
         }
-      }).addTo(map);
+        
+        const showTop5Only = document.getElementById('showTop5Only').checked;
+        const filteredData = showTop5Only 
+          ? {
+              ...allData,
+              features: allData.features.filter(f => f.properties.aantal_niet_aplus >= p95)
+            }
+          : allData;
 
-      map.fitBounds(geojsonLayer.getBounds());
+        geojsonLayer = L.geoJSON(filteredData, {
+          pointToLayer: (feature, latlng) => {
+            const totalNotAPlus = feature.properties.aantal_niet_aplus;
+            const top10Index = top10Values.indexOf(totalNotAPlus);
+            
+            let color, radius, weight;
+            if (top10Index !== -1) {
+              color = 'red';
+              radius = 8;
+              weight = 3;
+            } else if (totalNotAPlus >= p95) {
+              color = 'orange';
+              radius = 5;
+              weight = 1;
+            } else {
+              color = 'blue';
+              radius = 5;
+              weight = 1;
+            }
+
+            const marker = L.circleMarker(latlng, {
+              radius: radius,
+              fillColor: color,
+              color: '#333',
+              weight: weight,
+              fillOpacity: 0.8
+            });
+            
+            // Add label for top 10
+            if (top10Index !== -1) {
+              const label = L.divIcon({
+                className: 'top-label',
+                html: `<div style="background: transparent; font-size: 12px; font-weight: bold;">${top10Index + 1}</div>`,
+                iconSize: [20, 20],
+                iconAnchor: [-8, 20]
+              });
+              L.marker(latlng, { icon: label }).addTo(map);
+            }
+            
+            return marker;
+          },
+          onEachFeature: (feature, layer) => {
+            const props = feature.properties;
+            const html = Object.entries(props)
+              .map(([k, v]) => `<b>${k}</b>: ${v}`)
+              .join('<br>');
+            layer.bindPopup(html);
+          }
+        }).addTo(map);
+
+        map.fitBounds(geojsonLayer.getBounds());
+      }
+      
+      updateMap();
+      
+      document.getElementById('showTop5Only').addEventListener('change', updateMap);
     });
 </script>
 </body>
