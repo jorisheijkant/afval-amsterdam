@@ -44,7 +44,7 @@
       
       // Extract all total values
       const totals = data.features
-        .map(f => f.properties.aantal_niet_aplus)
+        .map(f => f.properties["Aantal bijplaatsingen"])
         .filter(v => typeof v === 'number' && !isNaN(v));
 
       // Compute 95th percentile (top 5%)
@@ -53,9 +53,9 @@
       
       // Get top 10 values for special markers
       const sortedFeatures = [...allData.features].sort((a, b) => 
-        b.properties.aantal_niet_aplus - a.properties.aantal_niet_aplus
+        b.properties["Aantal bijplaatsingen"] - a.properties["Aantal bijplaatsingen"]
       );
-      const top10Values = sortedFeatures.slice(0, 10).map(f => f.properties.aantal_niet_aplus);
+      const top10Values = sortedFeatures.slice(0, 10).map(f => f.properties["Aantal bijplaatsingen"]);
       
       function updateMap() {
         if (geojsonLayer) {
@@ -66,13 +66,13 @@
         const filteredData = showTop5Only 
           ? {
               ...allData,
-              features: allData.features.filter(f => f.properties.aantal_niet_aplus >= p95)
+              features: allData.features.filter(f => f.properties["Aantal bijplaatsingen"] >= p95)
             }
           : allData;
 
         geojsonLayer = L.geoJSON(filteredData, {
           pointToLayer: (feature, latlng) => {
-            const totalNotAPlus = feature.properties.aantal_niet_aplus;
+            const totalNotAPlus = feature.properties["Aantal bijplaatsingen"];
             const top10Index = top10Values.indexOf(totalNotAPlus);
             
             let color, radius, weight;
