@@ -12,14 +12,6 @@ df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
 
 df = df.where(pd.notnull(df), None)
 
-keep_properties = [
-    "totaal_bijplaatsingen",
-    "aantal_niet_aplus",
-    "aantal_handhavingen",
-    "adres",
-    "aantal_grofvuil"
-]
-
 features = []
 for _, row in df.iterrows():
     feature = {
@@ -29,7 +21,10 @@ for _, row in df.iterrows():
             "coordinates": [float(row.longitude), float(row.latitude)],
         },
         "properties": {
-            key: row.get(key) for key in keep_properties if key in df.columns
+            "Aantal bijplaatsingen": row.get("aantal_niet_aplus"),
+            "Aantal handhavingen": row.get("aantal_handhavingen"),
+            "Adres": row.get("adres"),
+            "Aantal grofvuil": row.get("aantal_grofvuil")
         },
     }
     features.append(feature)
