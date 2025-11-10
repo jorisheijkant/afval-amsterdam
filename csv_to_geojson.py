@@ -21,10 +21,10 @@ for _, row in df.iterrows():
             "coordinates": [float(row.longitude), float(row.latitude)],
         },
         "properties": {
-            "Aantal bijplaatsingen": row.get("aantal_niet_aplus"),
-            "Aantal handhavingen": row.get("aantal_handhavingen"),
             "Adres": row.get("adres"),
-            "Aantal grofvuil": row.get("aantal_grofvuil")
+            "Aantal keer bijgeplaatst afval aangetroffen": row.get("aantal_niet_aplus"),
+            "Totaal aantal schouwen": row.get("totaal_schouwen"),
+            "Aantal keer grofvuil aangetroffen": row.get("aantal_grofvuil")
         },
     }
     features.append(feature)
