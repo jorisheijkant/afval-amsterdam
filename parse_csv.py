@@ -8,6 +8,13 @@ trash_dataframe = pd.read_csv("data/bijplaatsingen.csv", low_memory=False)
 trash_dataframe['geometrie_str'] = trash_dataframe['geometrie'].astype(str)
 print_dataframe_info(trash_dataframe)
 
+trash_dataframe = trash_dataframe[
+    (trash_dataframe["waarnemer_rol"] != "TAM-KP") & 
+    (trash_dataframe["waarnemer_rol"] != "Buurtconciërge")
+]
+
+print_dataframe_info(trash_dataframe)
+
 grouped_by_bin = trash_dataframe.groupby(["straatnaam"]).agg(
         totaal_schouwen=("straatnaam", "size"),
         aantal_niet_aplus=("crow_score", lambda x: (x != "A+").sum()),
@@ -29,7 +36,7 @@ grouped_by_bin['lon'] = [coord[0] for coord in converted_coords]
 grouped_by_bin['lat'] = [coord[1] for coord in converted_coords]
 
 grouped_by_bin = grouped_by_bin.sort_values(
-    by='totaal_schouwen', 
+    by='aantal_niet_aplus', 
     ascending=False
 )
 

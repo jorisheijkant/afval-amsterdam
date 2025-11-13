@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 
-df = pd.read_csv("all_bins.csv")
+df = pd.read_csv("all_bins_2025.csv")
 
 df.rename(columns={'lat': 'latitude', 'lon': 'longitude'}, inplace=True)
 
@@ -31,7 +31,7 @@ for _, row in df.iterrows():
 
 geojson = {"type": "FeatureCollection", "features": features}
 
-with open("all_bins.geojson", "w") as f:
+with open("all_bins_2025.geojson", "w") as f:
     json.dump(geojson, f, allow_nan=False)
 
 print(f"✅ Saved 'trash_bins.geojson' with {len(features)} valid features and only selected properties")

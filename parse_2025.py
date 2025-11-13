@@ -7,6 +7,12 @@ from functions.utils.print_dataframe_info import print_dataframe_info
 trash_dataframe = pd.read_csv("data/bijplaatsingen.csv", low_memory=False)
 trash_dataframe = trash_dataframe[trash_dataframe['datum_waarneming'].astype(str).str.startswith('2025')]
 trash_dataframe['geometrie_str'] = trash_dataframe['geometrie'].astype(str)
+
+trash_dataframe = trash_dataframe[
+    (trash_dataframe["waarnemer_rol"] != "TAM-KP") & 
+    (trash_dataframe["waarnemer_rol"] != "Buurtconciërge")
+]
+
 print_dataframe_info(trash_dataframe)
 
 grouped_by_bin = trash_dataframe.groupby(["straatnaam"]).agg(
@@ -30,7 +36,7 @@ grouped_by_bin['lon'] = [coord[0] for coord in converted_coords]
 grouped_by_bin['lat'] = [coord[1] for coord in converted_coords]
 
 grouped_by_bin = grouped_by_bin.sort_values(
-    by='totaal_schouwen', 
+    by='aantal_niet_aplus', 
     ascending=False
 )
 
